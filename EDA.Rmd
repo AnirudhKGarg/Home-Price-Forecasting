@@ -1,0 +1,71 @@
+---
+title: "Home Prices Time Series"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+#import libraries
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(zoo)
+library(renv)
+library(dplyr)
+library(lubridate)
+```
+
+
+```{r}
+#import the dataset
+dataset <- read_csv("HPI_master.csv")
+#take a quick look at the dataset
+dataset
+```
+
+
+```{r}
+#seperate monthly from quarterly into distinct dataframes
+
+#filter monthly
+dataMonth <- dataset %>% 
+  filter(frequency == "monthly")
+dataMonth
+
+#filter quarterly
+dataQuart <- dataset %>% 
+  select(place_name, yr, period, index_nsa, frequency) %>% 
+  filter(frequency == "quarterly") %>% 
+  mutate(date = yq(paste0(as.character(yr), "Q", as.character(period)))) %>% 
+  unnest(everything())
+summary(dataQuart)
+dataQuart
+
+
+```
+
+From here on, we will focus on using the quarterly dataset since it includes key information regarding the home prices by MSA (metropolitan Statistical Area). MSA is a useful way to create panels to our data and allows us to control for regional variance.
+
+Our quarterly dates are in doubles for year and quarter. We need to mutate them into a date column so we can do a proper time series analysis
+
+```{r}
+dfQ <- dataQuart %>% 
+  select(date, place_name, index_nsa) %>% 
+  pivot_wider(names_from = place_name,  values_from = index_nsa) 
+
+#summary(dfQ)
+dfQ 
+#dim(dfQ)
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
