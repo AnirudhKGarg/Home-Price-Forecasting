@@ -58,6 +58,7 @@ From here on, we will focus on using the quarterly dataset since it includes key
 Our quarterly dates are in doubles for year and quarter. We need to mutate them into a date column so we can do a proper time series analysis
 
 ```{r}
+#ensure the quarterly df is coerced as a tibble
 dfQ <- as_tibble(dataQuart) %>% 
   select(date, place_name, index_nsa) 
 dfQ 
@@ -67,15 +68,17 @@ dfQ
 ```{r}
 #version if you want a smaller dataset
 
-# dfp <- dfQ %>% 
+# df <- dfQ %>% 
 #   filter(date <= "2021-10-01", date >= "1997-01-01") %>% 
 #   slice(1:5200) %>% 
 #   pivot_wider(names_from = place_name,  values_from = index_nsa)
 # 
-# dfp
+# df
 
 ```
 ```{r}
+
+#we need to ensure we have complete records for our window
 df30y <- dfQ %>% 
   select(date, place_name) %>% 
   filter(date <= "2021-10-01", date >= "1992-01-01") %>% 
@@ -85,18 +88,23 @@ df30y <- dfQ %>%
 df30y
 
 
-
+#our final df joins the place-name with complete records so we get a uniform dataset
 df <- dfQ %>% 
   inner_join(df30y, c("place_name" = "place_name")) %>% 
   select(!n) %>% 
   filter(date <= "2021-10-01", date >= "1992-01-01") %>% 
   slice(1:52000) %>% 
-  pivot_wider(names_from = place_name,  values_from = index_nsa)
+  pivot_wider(names_from = place_name,  values_from = index_nsa) #we widen the dataset so that each row corresponds to a different region
 
 df
 
 ```
 
+```{r}
+
+
+
+```
 
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
